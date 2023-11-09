@@ -1,0 +1,31 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # You can use a specific version if needed
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14  # You can specify your desired Node.js version
+
+      - name: Install dependencies
+        run: npm install  # You can use yarn if preferred
+
+      - name: Build and deploy backend
+        run: |
+          # Replace the following command with your actual deployment command
+          npm run build  # Example: Build your Express.js backend
+          # Add commands to deploy your backend (e.g., copying files to a server)
+
