@@ -1,75 +1,90 @@
 const express = require('express');
 const router = express.Router();
-const Consignment = require('../model/Consignments');
+const Consignment = require('../model/consignment.model'); // Import your Company model here
 
-// Create a new consignment
-router.post('/add', (req, res) => {
-  const newConsignment = new Consignment({
-    itemDetails: req.body.itemDetails,
-    itemQuantity: req.body.itemQuantity,
-    itemHSN: req.body.itemHSN,
-    itemQuantityKg: req.body.itemQuantityKg,
-    itemAmount: req.body.itemAmount,
-    itemRate: req.body.itemRate,
-  });
-
-  newConsignment.save()
-    .then(response => {
-      res.status(201).json(response);
-    })
-    .catch(error => {
-      res.status(500).json({ error: error.message });
-    });
+// GET: Retrieve all companies
+router.get('/', async (req, res) => {
+  try {
+    const consignments = await Consignment.find();
+    res.json(consignments);
+  } catch (err) {
+    res.status(500).json({ error: 'Error retrieving consignments' });
+  }
 });
 
-// Get all consignments
-router.get('/list', (req, res) => {
-  Consignment.find()
-    .then(consignments => {
-      res.status(200).json(consignments);
-    })
-    .catch(error => {
-      res.status(500).json({ error: error.message });
+// POST: Create a new consigment
+router.post('/', async (req, res) => {
+  const {
+    itemname,
+    itemquantity,
+    itemhsn,
+    itemprice,
+    itemtaxrate,
+  } = req.body;
+
+  try {
+    const newConsignment = new Consignment({
+    itemname,
+    itemquantity,
+    itemhsn,
+    itemprice,
+    itemtaxrate,
     });
+    const savedConsignment = await newConsignment.save();
+    res.status(201).json(savedConsignment);
+  } catch (err) {
+    res.status(400).json({ error: `${err}Error creating consignment `  });
+  }
 });
 
-// Update a consignment by ID
-router.put('/update/:id', (req, res) => {
-  Consignment.findByIdAndUpdate(
-    req.params.id,
-    {
-      itemDetails: req.body.itemDetails,
-      itemQuantity: req.body.itemQuantity,
-      itemHSN: req.body.itemHSN,
-      itemQuantityKg: req.body.itemQuantityKg,
-      itemAmount: req.body.itemAmount,
-      itemRate: req.body.itemRate,
-    },
-    { new: true }
-  )
-    .then(updatedConsignment => {
-      if (!updatedConsignment) {
-        return res.status(404).json({ message: 'Consignment not found' });
-      }
-      res.status(200).json(updatedConsignment);
-    })
-    .catch(error => {
-      res.status(500).json({ error: error.message });
-    });
+// PUT: Update a consigment by ID
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const {
+    itemname,
+    itemquantity,
+    itemhsn,
+    itemprice,
+    itemtaxrate,
+  } = req.body;
+
+  try {
+    const updatedConsignment = await Consignment.findByIdAndUpdate(
+      id,
+      {
+        itemname,
+        itemquantity,
+        itemhsn,
+        itemprice,
+        itemtaxrate
+      },
+      { new: true }
+    );
+
+    if (!updatedConsignment) {
+      res.status(404).json({ error: 'Consignment not found' });
+    } else {
+      res.json(updatedConsignment);
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Error updating consignment' });
+  }
 });
 
-// Delete a consignment by ID
-router.delete('/delete/:id', (req, res) => {
-  Consignment.findByIdAndRemove(req.params.id)
-    .then(deletedConsignment => {
-      if (!deletedConsignment) {
-        return res.status(404).json({ message: 'Consignment not found' });
-      }
-      res.status(204).end();
-    })
-    .catch(error => {
-      res.status(500).json({ error: error.message });
-    });
+// DELETE: Delete a consigment by ID
+router.delete('/:id', async (req, res) => {
+ 
+  try {
+    const deletedConsignment = await Consignment.findByIdAndRemove(req.params.id);
+
+    if (!deletedConsignment) {
+      res.status(404).json({ error: 'Consignment not found' });
+    } else {
+      res.json(deletedConsignment);
+    }
+  } catch (err) {
+    res.status(500).json({ error: `${err}Error deleting consignment` });
+  }
 });
 
 module.exports = router;

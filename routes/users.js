@@ -1,67 +1,99 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../model/Users');
+const User = require('../model/user.model'); // Import your User model here
 
-// Create a new user (signup)
-router.post('/signup', (req, res) => {
-  const newUser = new User({
-    Name: req.body.Name,
-    Email: req.body.Email,
-    Password: req.body.Password,
-  });
-  newUser.save()
-    .then(response => {
-      res.status(201).json(response);
-    })
-    .catch(error => {
-      res.status(500).json({ error: error.message });
-    });
-});
-// Get all users (userdet)
-router.get('/userdet', (req, res) => {
-  User.find()
-    .then(users => {
-      res.status(200).json(users);
-    })
-    .catch(error => {
-      res.status(500).json({ error: error.message });
-    });
+// GET: Retrieve all users
+router.get('/', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Error retrieving users' });
+  }
 });
 
-// Update a user by ID (update)
-router.put('/update/:id', (req, res) => {
-  User.findByIdAndUpdate(
-    req.params.id,
-    {
-      Name: req.body.Name,
-      Email: req.body.Email,
-      Password: req.body.Password,
-    },
-    { new: true }
-  )
-    .then(updatedUser => {
-      if (!updatedUser) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      res.status(200).json(updatedUser);
-    })
-    .catch(error => {
-      res.status(500).json({ error: error.message });
+// POST: Create a new user
+router.post('/', async (req, res) => {
+  const {
+    username,
+    useremail,
+    userpassword,
+    userphone,
+    useraccess,
+    useridproof,
+    useraddress,
+  } = req.body;
+
+  try {
+    const newUser = new User({
+      username,
+      useremail,
+      userpassword,
+      userphone,
+      useraccess,
+      useridproof,
+      useraddress,
     });
+    const savedUser = await newUser.save();
+    res.status(201).json(savedUser);
+  } catch (err) {
+    res.status(400).json({ error: 'Error creating user' });
+  }
 });
 
-// Delete a user by ID (delete)
-router.delete('/delete/:id', (req, res) => {
-  User.findByIdAndRemove(req.params.id)
-    .then(deletedUser => {
-      if (!deletedUser) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      res.status(204).end();
-    })
-    .catch(error => {
-      res.status(500).json({ error: error.message });
-    });
+// PUT: Update a user by ID
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const {
+    username,
+    useremail,
+    userpassword,
+    userphone,
+    useraccess,
+    useridproof,
+    useraddress,
+  } = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        username,
+        useremail,
+        userpassword,
+        userphone,
+        useraccess,
+        useridproof,
+        useraddress,
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      res.json(updatedUser);
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Error updating user' });
+  }
+});
+
+// DELETE: Delete a user by ID
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      res.json(deletedUser);
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Error deleting user' });
+  }
 });
 
 module.exports = router;
